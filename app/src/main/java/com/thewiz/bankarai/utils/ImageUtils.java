@@ -57,7 +57,7 @@ public class ImageUtils {
         final File myDir = new File(root);
 
         if (!myDir.mkdirs()) {
-            Log.i(TAG,"Make dir failed");
+            Log.i(TAG, "Make dir failed");
         }
 
         final String fname = "preview.png";
@@ -71,7 +71,7 @@ public class ImageUtils {
             out.flush();
             out.close();
         } catch (final Exception e) {
-            Log.i(TAG,"Make dir failed");
+            Log.i(TAG, "Make dir failed");
         }
     }
 
@@ -227,5 +227,5 @@ public class ImageUtils {
 
         return matrix;
     }
-    
+
 }
