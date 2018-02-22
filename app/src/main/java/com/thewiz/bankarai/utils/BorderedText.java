@@ -16,6 +16,7 @@ import java.util.Vector;
  * A class that encapsulates the tedious bits of rendering legible, bordered text onto a canvas.
  */
 public class BorderedText {
+
     private final Paint interiorPaint;
     private final Paint exteriorPaint;
 
@@ -102,4 +103,5 @@ public class BorderedText {
         interiorPaint.setTextAlign(align);
         exteriorPaint.setTextAlign(align);
     }
+
 }
