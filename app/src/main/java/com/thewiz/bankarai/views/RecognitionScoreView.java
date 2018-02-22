@@ -3,10 +3,12 @@ package com.thewiz.bankarai.views;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
 
+import com.thewiz.bankarai.R;
 import com.thewiz.bankarai.models.Classifier.Recognition;
 
 import java.util.List;
@@ -26,14 +28,13 @@ public class RecognitionScoreView extends View implements ResultsView {
     public RecognitionScoreView(final Context context, final AttributeSet set) {
         super(context, set);
 
-        textSizePx =
-                TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());
+        textSizePx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());
         fgPaint = new Paint();
         fgPaint.setTextSize(textSizePx);
+        int color = ContextCompat.getColor(context, R.color.yellow);
+        fgPaint.setColor(color);
 
         bgPaint = new Paint();
-        bgPaint.setColor(0xcc4285f4);
     }
 
     @Override
