@@ -16,8 +16,8 @@ import android.util.TypedValue;
 import android.view.Display;
 
 import com.thewiz.bankarai.cams.CameraActivity;
-import com.thewiz.bankarai.models.Classifier;
-import com.thewiz.bankarai.models.TensorFlowImageClassifier;
+import com.thewiz.bankarai.tfmodels.Classifier;
+import com.thewiz.bankarai.tfmodels.TensorFlowImageClassifier;
 import com.thewiz.bankarai.utils.BorderedText;
 import com.thewiz.bankarai.utils.ImageUtils;
 import com.thewiz.bankarai.views.OverlayView.DrawCallback;

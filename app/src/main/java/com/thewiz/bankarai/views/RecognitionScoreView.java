@@ -9,7 +9,7 @@ import android.util.TypedValue;
 import android.view.View;
 
 import com.thewiz.bankarai.R;
-import com.thewiz.bankarai.models.Classifier.Recognition;
+import com.thewiz.bankarai.tfmodels.Classifier.Recognition;
 
 import java.util.List;
 

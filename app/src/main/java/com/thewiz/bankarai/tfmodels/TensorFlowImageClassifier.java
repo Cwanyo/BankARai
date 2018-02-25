@@ -1,4 +1,4 @@
-package com.thewiz.bankarai.models;
+package com.thewiz.bankarai.tfmodels;
 
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
