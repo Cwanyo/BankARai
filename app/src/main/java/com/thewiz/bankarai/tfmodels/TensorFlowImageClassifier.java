@@ -27,7 +27,7 @@ public class TensorFlowImageClassifier implements Classifier {
 
     // Config return output
     private static final int MAX_RESULTS = 1;
-    private static final float THRESHOLD = 0.8f;
+    private static final float THRESHOLD = 0.9f;
 
     // Config values
     private String inputName;

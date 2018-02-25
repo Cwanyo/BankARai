@@ -51,8 +51,6 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
     //private static final Size DESIRED_PREVIEW_SIZE = new Size(1920, 1080);
 
-    private Classifier classifier;
-
     private Integer sensorOrientation;
 
     private int previewWidth = 0;
@@ -77,12 +75,8 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
     private static final float TEXT_SIZE_DIP = 10;
 
-    private TextSpeaker ts;
-
     @Override
     protected void onPreviewSizeChosen(Size size, int rotation) {
-        ts = new TextSpeaker(this);
-
         final float textSizePx =
                 TypedValue.applyDimension(
                         TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());
@@ -267,9 +261,4 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
         ts.speakText(results.get(0).getTitle(),1);
     }
 
-    @Override
-    public void onDestroy() {
-        Log.d(TAG, "onDestroy");
-        super.onDestroy();
-    }
 }

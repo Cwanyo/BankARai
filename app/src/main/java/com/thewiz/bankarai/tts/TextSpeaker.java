@@ -27,8 +27,6 @@ public class TextSpeaker implements TextToSpeech.OnInitListener {
                 int result = tts.setLanguage(Locale.US);
                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                     Toast.makeText(this.context, "TTS language is notsupported", Toast.LENGTH_LONG).show();
-                } else {
-                    speakText("TTS is ready", 1);
                 }
             }
         } else {
