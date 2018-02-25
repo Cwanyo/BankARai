@@ -19,6 +19,7 @@ import com.thewiz.bankarai.cams.CameraActivity;
 import com.thewiz.bankarai.tfmodels.Classifier;
 import com.thewiz.bankarai.tfmodels.Classifier.Recognition;
 import com.thewiz.bankarai.tfmodels.TensorFlowImageClassifier;
+import com.thewiz.bankarai.tts.TextSpeaker;
 import com.thewiz.bankarai.utils.BorderedText;
 import com.thewiz.bankarai.utils.ImageUtils;
 import com.thewiz.bankarai.views.OverlayView.DrawCallback;
@@ -76,8 +77,12 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
     private static final float TEXT_SIZE_DIP = 10;
 
+    private TextSpeaker ts;
+
     @Override
     protected void onPreviewSizeChosen(Size size, int rotation) {
+        ts = new TextSpeaker(this);
+
         final float textSizePx =
                 TypedValue.applyDimension(
                         TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());
@@ -190,6 +195,9 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
                     public void run() {
                         final long startTime = SystemClock.uptimeMillis();
                         final List<Recognition> results = classifier.recognizeImage(croppedBitmap);
+
+                        speakResult(results);
+
                         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
                         cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
@@ -250,4 +258,18 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
         }
     }
 
+    private void speakResult(List<Recognition> results){
+        if (results.size() == 0){
+            ts.stopSpeak();
+            return;
+        }
+
+        ts.speakText(results.get(0).getTitle(),1);
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "onDestroy");
+        super.onDestroy();
+    }
 }
