@@ -2,12 +2,14 @@ package com.thewiz.bankarai.cams;
 
 import android.Manifest;
 import android.app.Fragment;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.Image;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,6 +19,8 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.thewiz.bankarai.R;
+import com.thewiz.bankarai.tfmodels.Classifier;
+import com.thewiz.bankarai.tts.TextSpeaker;
 import com.thewiz.bankarai.views.OverlayView;
 
 import java.nio.ByteBuffer;
@@ -35,6 +39,11 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     private Handler handler;
     private HandlerThread handlerThread;
 
+    public TextSpeaker ts;
+    private final int ACT_CHECK_TTS_DATA = 1000;
+
+    public Classifier classifier;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
@@ -42,6 +51,13 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         setContentView(R.layout.activity_main);
+
+        ts = new TextSpeaker(this);
+
+        // TODO - Check TTS data available
+        /*Intent ttsIntent = new Intent();
+        ttsIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+        startActivityForResult(ttsIntent, ACT_CHECK_TTS_DATA);*/
 
         if (hasPermission()) {
             setFragment();
@@ -70,6 +86,8 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     public synchronized void onPause() {
         Log.d(TAG, "onPause");
 
+        ts.stopSpeak();
+
         if (!isFinishing()) {
             Log.d(TAG, "Requesting finish");
             finish();
@@ -97,6 +115,8 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     @Override
     public synchronized void onDestroy() {
         Log.d(TAG, "onDestroy");
+        ts.close();
+        classifier.close();
         super.onDestroy();
     }
 
@@ -105,6 +125,21 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
             handler.post(r);
         }
     }
+
+    // TODO - wait for result from intend for TTS
+    /*
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "onActivityResult");
+        if (requestCode == ACT_CHECK_TTS_DATA) {
+            if (resultCode != TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                // installation process for TTS
+                Intent installIntent = new Intent();
+                installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                startActivity(installIntent);
+            }
+        }
+    }*/
 
     @Override
     public void onRequestPermissionsResult(final int requestCode, final String[] permissions, final int[] grantResults) {
@@ -139,17 +174,17 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     }
 
     protected void setFragment() {
-       final Fragment fragment = CameraConnectionFragment.newInstance(
-               new CameraConnectionFragment.ConnectionCallback() {
-                   @Override
-                   public void onPreviewSizeChosen(Size size, int cameraRotation) {
-                       CameraActivity.this.onPreviewSizeChosen(size,cameraRotation);
-                   }
-               },
-               this,
-               getLayoutId(),
-               getDesiredPreviewFrameSize()
-       );
+        final Fragment fragment = CameraConnectionFragment.newInstance(
+                new CameraConnectionFragment.ConnectionCallback() {
+                    @Override
+                    public void onPreviewSizeChosen(Size size, int cameraRotation) {
+                        CameraActivity.this.onPreviewSizeChosen(size, cameraRotation);
+                    }
+                },
+                this,
+                getLayoutId(),
+                getDesiredPreviewFrameSize()
+        );
 
         getFragmentManager()
                 .beginTransaction()

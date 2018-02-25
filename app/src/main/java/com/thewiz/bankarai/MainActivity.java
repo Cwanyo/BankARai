@@ -19,6 +19,7 @@ import com.thewiz.bankarai.cams.CameraActivity;
 import com.thewiz.bankarai.tfmodels.Classifier;
 import com.thewiz.bankarai.tfmodels.Classifier.Recognition;
 import com.thewiz.bankarai.tfmodels.TensorFlowImageClassifier;
+import com.thewiz.bankarai.tts.TextSpeaker;
 import com.thewiz.bankarai.utils.BorderedText;
 import com.thewiz.bankarai.utils.ImageUtils;
 import com.thewiz.bankarai.views.OverlayView.DrawCallback;
@@ -49,8 +50,6 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     // Config preview size
     private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
     //private static final Size DESIRED_PREVIEW_SIZE = new Size(1920, 1080);
-
-    private Classifier classifier;
 
     private Integer sensorOrientation;
 
@@ -190,6 +189,9 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
                     public void run() {
                         final long startTime = SystemClock.uptimeMillis();
                         final List<Recognition> results = classifier.recognizeImage(croppedBitmap);
+
+                        speakResult(results);
+
                         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
                         cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
@@ -248,6 +250,15 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
             borderedText.drawLines(canvas, 10, canvas.getHeight() - 10, lines);
         }
+    }
+
+    private void speakResult(List<Recognition> results){
+        if (results.size() == 0){
+            ts.stopSpeak();
+            return;
+        }
+
+        ts.speakText(results.get(0).getTitle(),1);
     }
 
 }
