@@ -23,7 +23,6 @@ public class RecognitionScoreView extends View implements ResultsView {
     private List<Recognition> results;
     private final float textSizePx;
     private final Paint fgPaint;
-    private final Paint bgPaint;
 
     public RecognitionScoreView(final Context context, final AttributeSet set) {
         super(context, set);
@@ -34,7 +33,7 @@ public class RecognitionScoreView extends View implements ResultsView {
         int color = ContextCompat.getColor(context, R.color.yellow);
         fgPaint.setColor(color);
 
-        bgPaint = new Paint();
+        fgPaint.setTextAlign(Paint.Align.CENTER);
     }
 
     @Override
@@ -45,10 +44,9 @@ public class RecognitionScoreView extends View implements ResultsView {
 
     @Override
     public void onDraw(final Canvas canvas) {
-        final int x = 10;
-        int y = (int) (fgPaint.getTextSize() * 1.5f);
+        final int x = canvas.getWidth() / 2;
 
-        canvas.drawPaint(bgPaint);
+        int y = (int) (fgPaint.getTextSize() * 1.5f);
 
         if (results != null) {
             for (final Recognition recog : results) {
