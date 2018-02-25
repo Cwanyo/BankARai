@@ -17,6 +17,7 @@ import android.view.Display;
 
 import com.thewiz.bankarai.cams.CameraActivity;
 import com.thewiz.bankarai.tfmodels.Classifier;
+import com.thewiz.bankarai.tfmodels.Classifier.Recognition;
 import com.thewiz.bankarai.tfmodels.TensorFlowImageClassifier;
 import com.thewiz.bankarai.utils.BorderedText;
 import com.thewiz.bankarai.utils.ImageUtils;
@@ -46,8 +47,8 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private static final boolean MAINTAIN_ASPECT = true;
 
     // Config preview size
-    //private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
-    private static final Size DESIRED_PREVIEW_SIZE = new Size(1920, 1080);
+    private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
+    //private static final Size DESIRED_PREVIEW_SIZE = new Size(1920, 1080);
 
     private Classifier classifier;
 
@@ -188,7 +189,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
                     @Override
                     public void run() {
                         final long startTime = SystemClock.uptimeMillis();
-                        final List<Classifier.Recognition> results = classifier.recognizeImage(croppedBitmap);
+                        final List<Recognition> results = classifier.recognizeImage(croppedBitmap);
                         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
                         cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
