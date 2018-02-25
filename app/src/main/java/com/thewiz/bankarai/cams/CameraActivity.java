@@ -116,7 +116,9 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     public synchronized void onDestroy() {
         Log.d(TAG, "onDestroy");
         ts.close();
-        classifier.close();
+        if (classifier != null) {
+            classifier.close();
+        }
         super.onDestroy();
     }
 
