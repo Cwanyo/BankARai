@@ -33,15 +33,38 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private final static String TAG = "MainActivity";
 
     // Config Model
-    private static final int INPUT_SIZE = 224;
+    // Mobilenet - model
+    /*private static final int INPUT_SIZE = 224;
     private static final int IMAGE_MEAN = 128;
     private static final float IMAGE_STD = 128.0f;
     private static final String INPUT_NAME = "input";
+    private static final String OUTPUT_NAME = "final_result";*/
+
+    // Binary Banknotes - Using Inception
+    private static final int BINARY_INPUT_SIZE = 299;
+    private static final int BINARY_IMAGE_MEAN = 128;
+    private static final float BINARY_IMAGE_STD = 128.0f;
+    private static final String BINARY_INPUT_NAME = "Mul";
+    private static final String BINARY_OUTPUT_NAME = "final_result";
+    private static final int BINARY_MAX_RESULTS = 1;
+    private static final float BINARY_THRESHOLD = 0.7f;
+
+    // Thai Banknotes - Using Inception
+    private static final int INPUT_SIZE = 299;
+    private static final int IMAGE_MEAN = 128;
+    private static final float IMAGE_STD = 128.0f;
+    private static final String INPUT_NAME = "Mul";
     private static final String OUTPUT_NAME = "final_result";
+    private static final int MAX_RESULTS = 1;
+    private static final float THRESHOLD = 0.7f;
 
     // Assets
-    private static final String MODEL_FILE = "file:///android_asset/graph.pb";
-    private static final String LABEL_FILE = "file:///android_asset/labels.txt";
+    // Binary Banknotes
+    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_graph.pb";
+    private static final String BINARY_LABEL_FILE = "file:///android_asset/binary_labels.txt";
+    // Thai Banknotes
+    private static final String MODEL_FILE = "file:///android_asset/th_graph.pb";
+    private static final String LABEL_FILE = "file:///android_asset/th_labels.txt";
 
     private static final boolean SAVE_PREVIEW_BITMAP = false;
 
@@ -83,15 +106,31 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
         borderedText = new BorderedText(textSizePx);
         borderedText.setTypeface(Typeface.MONOSPACE);
 
+        // Binary Banknotes classifier - 2 classes
+        binaryClassifier = TensorFlowImageClassifier.create(
+                getAssets(),
+                BINARY_MODEL_FILE,
+                BINARY_LABEL_FILE,
+                BINARY_INPUT_SIZE,
+                BINARY_IMAGE_MEAN,
+                BINARY_IMAGE_STD,
+                BINARY_INPUT_NAME,
+                BINARY_OUTPUT_NAME,
+                BINARY_MAX_RESULTS,
+                BINARY_THRESHOLD);
+
+        // Thai Banknotes classifier - 5 classes
         classifier = TensorFlowImageClassifier.create(
-                        getAssets(),
-                        MODEL_FILE,
-                        LABEL_FILE,
-                        INPUT_SIZE,
-                        IMAGE_MEAN,
-                        IMAGE_STD,
-                        INPUT_NAME,
-                        OUTPUT_NAME);
+                getAssets(),
+                MODEL_FILE,
+                LABEL_FILE,
+                INPUT_SIZE,
+                IMAGE_MEAN,
+                IMAGE_STD,
+                INPUT_NAME,
+                OUTPUT_NAME,
+                MAX_RESULTS,
+                THRESHOLD);
 
         resultsView = (ResultsView) findViewById(R.id.results);
         previewWidth = size.getWidth();
@@ -188,9 +227,15 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
                     @Override
                     public void run() {
                         final long startTime = SystemClock.uptimeMillis();
-                        final List<Recognition> results = classifier.recognizeImage(croppedBitmap);
+                        final List<Recognition> binaryResults = binaryClassifier.recognizeImage(croppedBitmap);
+                        List<Recognition> results = null;
 
-                        speakResult(results);
+                        // TODO - this process is slow, changing the binary model from inception to mobilenet might improve the performance
+                        // Check if banknote in frame
+                        if(banknoteInFrame(binaryResults)){
+                            results = classifier.recognizeImage(croppedBitmap);
+                            speakResult(results);
+                        }
 
                         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
@@ -202,6 +247,37 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
                 });
 
         Trace.endSection();
+    }
+
+    private Boolean banknoteInFrame(List<Recognition> results){
+        if (results.size() == 0 || results.get(0).getTitle().equals("unknown")){
+            Log.d(TAG,"banknote not in frame");
+            ts.stopSpeak();
+            return false;
+        }else {
+            Log.d(TAG,"banknote in frame");
+            return true;
+        }
+    }
+
+    String preObject = "";
+
+    private void speakResult(List<Recognition> results){
+
+        if (results.size() == 0){
+            Log.d(TAG,"banknote in frame but can not be identified");
+            ts.stopSpeak();
+            return;
+        }else if(!(preObject.equals(results.get(0).getTitle()))){
+            Log.d(TAG,"new banknote detected");
+            ts.stopSpeak();
+            ts.speakText(results.get(0).getTitle(),1);
+        }else{
+            Log.d(TAG,"same banknote detected");
+            ts.speakText(results.get(0).getTitle(),1);
+        }
+
+        preObject = results.get(0).getTitle();
     }
 
     @Override
@@ -250,15 +326,6 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
             borderedText.drawLines(canvas, 10, canvas.getHeight() - 10, lines);
         }
-    }
-
-    private void speakResult(List<Recognition> results){
-        if (results.size() == 0){
-            ts.stopSpeak();
-            return;
-        }
-
-        ts.speakText(results.get(0).getTitle(),1);
     }
 
 }

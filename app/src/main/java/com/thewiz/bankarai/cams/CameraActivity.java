@@ -2,14 +2,12 @@ package com.thewiz.bankarai.cams;
 
 import android.Manifest;
 import android.app.Fragment;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.Image;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -41,8 +39,11 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
 
     public TextSpeaker ts;
     private final int ACT_CHECK_TTS_DATA = 1000;
+    private int languageIndex = 0;
+    private String[] language = new String[]{"en", "th"};
 
     public Classifier classifier;
+    public Classifier binaryClassifier;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +53,7 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
 
         setContentView(R.layout.activity_main);
 
-        ts = new TextSpeaker(this);
+        ts = new TextSpeaker(this, language[languageIndex]);
 
         // TODO - Check TTS data available
         /*Intent ttsIntent = new Intent();
@@ -118,6 +119,9 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
         ts.close();
         if (classifier != null) {
             classifier.close();
+        }
+        if (binaryClassifier != null) {
+            binaryClassifier.close();
         }
         super.onDestroy();
     }
@@ -235,8 +239,22 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
             requestRender();
             onSetDebug(debug);
             return true;
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            switchTTSLanguage();
+            return true;
         }
+
         return super.onKeyDown(keyCode, event);
+    }
+
+    private void switchTTSLanguage() {
+        languageIndex++;
+        if (languageIndex >= language.length) {
+            languageIndex = 0;
+        }
+        Log.d(TAG, "CurrLagIndex: " + languageIndex);
+        ts.close();
+        ts = new TextSpeaker(this, language[languageIndex]);
     }
 
     protected abstract void onPreviewSizeChosen(final Size size, final int rotation);

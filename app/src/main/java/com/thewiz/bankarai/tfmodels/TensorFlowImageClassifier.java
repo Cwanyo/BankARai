@@ -26,8 +26,8 @@ public class TensorFlowImageClassifier implements Classifier {
     private static final String TAG = "TensorFlowImageClassifier";
 
     // Config return output
-    private static final int MAX_RESULTS = 1;
-    private static final float THRESHOLD = 0.9f;
+    private int MAX_RESULTS;
+    private float THRESHOLD;
 
     // Config values
     private String inputName;
@@ -72,11 +72,15 @@ public class TensorFlowImageClassifier implements Classifier {
             int imageMean,
             float imageStd,
             String inputName,
-            String outputName
+            String outputName,
+            int maxResult,
+            float threshold
     ){
         TensorFlowImageClassifier c = new TensorFlowImageClassifier();
         c.inputName = inputName;
         c.outputName = outputName;
+        c.MAX_RESULTS = maxResult;
+        c.THRESHOLD = threshold;
 
         // Read the label names into memory.
         String actualFileName = labelFileName.split("file:///android_asset/")[1];
