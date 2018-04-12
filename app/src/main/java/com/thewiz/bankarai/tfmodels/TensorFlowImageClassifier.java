@@ -131,9 +131,9 @@ public class TensorFlowImageClassifier implements Classifier {
         bitmap.getPixels(this.intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
         for (int i = 0; i < this.intValues.length; ++i) {
             final int val = this.intValues[i];
-            this.floatValues[i * 3 + 0] = (((val >> 16) & 0xFF) - this.imageMean) / this.imageStd;
-            this.floatValues[i * 3 + 1] = (((val >> 8) & 0xFF) - this.imageMean) / this.imageStd;
-            this.floatValues[i * 3 + 2] = ((val & 0xFF) - this.imageMean) / this.imageStd;
+            this.floatValues[i * 3 + 0] = ((val >> 16) & 0xFF) * 1.0f / 255.0f;
+            this.floatValues[i * 3 + 1] = ((val >> 8) & 0xFF) * 1.0f / 255.0f;
+            this.floatValues[i * 3 + 2] = (val & 0xFF) * 1.0f / 255.0f;
         }
         Trace.endSection();
 
