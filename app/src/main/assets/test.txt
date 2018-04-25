@@ -3,3 +3,4 @@
 20baht
 500baht
 50baht
+unknown

@@ -54,7 +54,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private static final int IMAGE_MEAN = 128;
     private static final float IMAGE_STD = 128.0f;
     private static final String INPUT_NAME = "conv2d_1_input";
-    private static final String OUTPUT_NAME = "dense_2/Softmax";
+    private static final String OUTPUT_NAME = "dense_3/Softmax";
     private static final int MAX_RESULTS = 1;
     private static final float THRESHOLD = 0.7f;
 
@@ -71,8 +71,8 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private static final boolean MAINTAIN_ASPECT = true;
 
     // Config preview size
-    private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
-    //private static final Size DESIRED_PREVIEW_SIZE = new Size(1920, 1080);
+    //private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
+    private static final Size DESIRED_PREVIEW_SIZE = new Size(1920, 1080);
 
     private Integer sensorOrientation;
 
@@ -243,23 +243,46 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
         Trace.endSection();
     }
 
-    private Boolean banknoteInFrame(List<Recognition> results) {
-        if (results.size() == 0 || results.get(0).getTitle().equals("unknown")) {
-            Log.d(TAG, "banknote not in frame");
-            ts.stopSpeak();
-            return false;
-        } else {
-            Log.d(TAG, "banknote in frame");
-            return true;
-        }
-    }
+    // TODO - This for double model
 
+//    private Boolean banknoteInFrame(List<Recognition> results) {
+//        if (results.size() == 0 || results.get(0).getTitle().equals("unknown")) {
+//            Log.d(TAG, "banknote not in frame");
+//            ts.stopSpeak();
+//            return false;
+//        } else {
+//            Log.d(TAG, "banknote in frame");
+//            return true;
+//        }
+//    }
+//
+//    String preObject = "";
+//
+//    private void speakResult(List<Recognition> results) {
+//
+//        if (results.size() == 0) {
+//            Log.d(TAG, "banknote in frame but can not be identified");
+//            ts.stopSpeak();
+//            return;
+//        } else if (!(preObject.equals(results.get(0).getTitle()))) {
+//            Log.d(TAG, "new banknote detected");
+//            ts.stopSpeak();
+//            ts.speakText(results.get(0).getTitle(), 1);
+//        } else {
+//            Log.d(TAG, "same banknote detected");
+//            ts.speakText(results.get(0).getTitle(), 1);
+//        }
+//
+//        preObject = results.get(0).getTitle();
+//    }
+
+    // TODO - This for single model
     String preObject = "";
 
     private void speakResult(List<Recognition> results) {
 
-        if (results.size() == 0) {
-            Log.d(TAG, "banknote in frame but can not be identified");
+        if (results.size() == 0 || results.get(0).getTitle().equals("unknown")) {
+            Log.d(TAG, "banknote not in frame");
             ts.stopSpeak();
             return;
         } else if (!(preObject.equals(results.get(0).getTitle()))) {
