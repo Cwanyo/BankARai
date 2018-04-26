@@ -63,8 +63,8 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_graph.pb";
     private static final String BINARY_LABEL_FILE = "file:///android_asset/binary_labels.txt";
     // Thai Banknotes
-    private static final String MODEL_FILE = "file:///android_asset/th_graph.pb";
-    private static final String LABEL_FILE = "file:///android_asset/th_labels.txt";
+    private static final String MODEL_FILE = "file:///android_asset/nth_graph.pb";
+    private static final String LABEL_FILE = "file:///android_asset/nth_labels.txt";
 
     private static final boolean SAVE_PREVIEW_BITMAP = false;
 
