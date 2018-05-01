@@ -47,14 +47,14 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private static final String BINARY_INPUT_NAME = "Mul";
     private static final String BINARY_OUTPUT_NAME = "final_result";
     private static final int BINARY_MAX_RESULTS = 1;
-    private static final float BINARY_THRESHOLD = 0.7f;
+    private static final float BINARY_THRESHOLD = 0.5f;
 
     // Thai Banknotes - Using Inception
     private static final int INPUT_SIZE = 128;
     private static final int IMAGE_MEAN = 128;
     private static final float IMAGE_STD = 128.0f;
     private static final String INPUT_NAME = "conv2d_1_input";
-    private static final String OUTPUT_NAME = "dense_3/Softmax";
+    private static final String OUTPUT_NAME = "dense_2/Softmax";
     private static final int MAX_RESULTS = 1;
     private static final float THRESHOLD = 0.7f;
 
@@ -63,16 +63,16 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_graph.pb";
     private static final String BINARY_LABEL_FILE = "file:///android_asset/binary_labels.txt";
     // Thai Banknotes
-    private static final String MODEL_FILE = "file:///android_asset/test.pb";
-    private static final String LABEL_FILE = "file:///android_asset/test.txt";
+    private static final String MODEL_FILE = "file:///android_asset/binary_banknotes.pb";
+    private static final String LABEL_FILE = "file:///android_asset/binary_banknotes.txt";
 
     private static final boolean SAVE_PREVIEW_BITMAP = false;
 
     private static final boolean MAINTAIN_ASPECT = true;
 
     // Config preview size
-    //private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
-    private static final Size DESIRED_PREVIEW_SIZE = new Size(1920, 1080);
+    private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
+    //private static final Size DESIRED_PREVIEW_SIZE = new Size(1920, 1080);
 
     private Integer sensorOrientation;
 
