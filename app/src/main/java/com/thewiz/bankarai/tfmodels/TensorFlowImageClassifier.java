@@ -25,11 +25,11 @@ public class TensorFlowImageClassifier implements Classifier {
 
     private static final String TAG = "TensorFlowImageClassifier";
 
-    // Config return output
+    // Config return output.
     private int MAX_RESULTS;
     private float THRESHOLD;
 
-    // Config values
+    // Config values.
     private String inputName;
     private String outputName;
     private int inputSize;
@@ -75,7 +75,7 @@ public class TensorFlowImageClassifier implements Classifier {
             String outputName,
             int maxResult,
             float threshold
-    ){
+    ) {
         TensorFlowImageClassifier c = new TensorFlowImageClassifier();
         c.inputName = inputName;
         c.outputName = outputName;
@@ -166,7 +166,7 @@ public class TensorFlowImageClassifier implements Classifier {
         // If output more then threshold add it to the queue.
         for (int i = 0; i < this.outputs.length; i++) {
             if (this.outputs[i] > this.THRESHOLD) {
-                pq.add(new Recognition("" + i, this.labels.size() > i ? this.labels.get(i) : "unknown", this.outputs[i]));
+                pq.add(new Recognition("" + i, this.labels.size() > i ? this.labels.get(i) : "unknown", this.outputs[i], null));
             }
         }
 

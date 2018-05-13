@@ -14,17 +14,20 @@ import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
 import android.view.Display;
+import android.widget.Toast;
 
 import com.thewiz.bankarai.cams.CameraActivity;
 import com.thewiz.bankarai.tfmodels.Classifier;
 import com.thewiz.bankarai.tfmodels.Classifier.Recognition;
 import com.thewiz.bankarai.tfmodels.TensorFlowImageClassifier;
+import com.thewiz.bankarai.tfmodels.TensorFlowObjectDetectionAPIModel;
 import com.thewiz.bankarai.tts.TextSpeaker;
 import com.thewiz.bankarai.utils.BorderedText;
 import com.thewiz.bankarai.utils.ImageUtils;
 import com.thewiz.bankarai.views.OverlayView.DrawCallback;
 import com.thewiz.bankarai.views.ResultsView;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Vector;
 
@@ -32,24 +35,12 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
     private final static String TAG = "MainActivity";
 
-    // Config Model
-    // Mobilenet - model
-    /*private static final int INPUT_SIZE = 224;
-    private static final int IMAGE_MEAN = 128;
-    private static final float IMAGE_STD = 128.0f;
-    private static final String INPUT_NAME = "input";
-    private static final String OUTPUT_NAME = "final_result";*/
+    // (Detector) Config Model
+    private static final int TF_OD_INPUT_SIZE = 300;
+    private static final int TF_OD_MAX_RESULTS = 1;
+    private static final float TF_OD_THRESHOLD = 0.7f;
 
-    // Binary Banknotes - Using Inception
-    private static final int BINARY_INPUT_SIZE = 299;
-    private static final int BINARY_IMAGE_MEAN = 128;
-    private static final float BINARY_IMAGE_STD = 128.0f;
-    private static final String BINARY_INPUT_NAME = "Mul";
-    private static final String BINARY_OUTPUT_NAME = "final_result";
-    private static final int BINARY_MAX_RESULTS = 1;
-    private static final float BINARY_THRESHOLD = 0.5f;
-
-    // Thai Banknotes - Using Inception
+    // (Classifier) Thai Banknotes - Using Inception
     private static final int INPUT_SIZE = 128;
     private static final int IMAGE_MEAN = 128;
     private static final float IMAGE_STD = 128.0f;
@@ -59,16 +50,16 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private static final float THRESHOLD = 0.7f;
 
     // Assets
-    // Binary Banknotes
-    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_graph.pb";
-    private static final String BINARY_LABEL_FILE = "file:///android_asset/binary_labels.txt";
-    // Thai Banknotes
+    // (Detector) Banknotes
+    private static final String TF_OD_API_MODEL_FILE = "file:///android_asset/ssd_mobilenet_v1_android_export.pb";
+    private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/coco_labels_list.txt";
+
+    // (Classifier) Thai Banknotes
     private static final String MODEL_FILE = "file:///android_asset/binary_banknotes.pb";
     private static final String LABEL_FILE = "file:///android_asset/binary_banknotes.txt";
 
-    private static final boolean SAVE_PREVIEW_BITMAP = false;
-
-    private static final boolean MAINTAIN_ASPECT = true;
+    // TODO - check, = false
+    private static final boolean MAINTAIN_ASPECT = false;
 
     // Config preview size
     private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
@@ -80,22 +71,26 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private int previewHeight = 0;
     private byte[][] yuvBytes;
     private int[] rgbBytes = null;
+
+    private long lastProcessingTimeMs;
+
     private Bitmap rgbFrameBitmap = null;
     private Bitmap croppedBitmap = null;
-
     private Bitmap cropCopyBitmap;
 
-    private boolean computing = false;
+    private boolean computingDetection = false;
+
+    private long timestamp = 0;
 
     private Matrix frameToCropTransform;
     private Matrix cropToFrameTransform;
 
-    private ResultsView resultsView;
+//    private MultiBoxTracker tracker;
 
+    private ResultsView resultsView;
     private BorderedText borderedText;
 
-    private long lastProcessingTimeMs;
-
+    private static final boolean SAVE_PREVIEW_BITMAP = false;
     private static final float TEXT_SIZE_DIP = 10;
 
     @Override
@@ -106,65 +101,6 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
         borderedText = new BorderedText(textSizePx);
         borderedText.setTypeface(Typeface.MONOSPACE);
 
-//        // Binary Banknotes classifier - 2 classes
-//        binaryClassifier = TensorFlowImageClassifier.create(
-//                getAssets(),
-//                BINARY_MODEL_FILE,
-//                BINARY_LABEL_FILE,
-//                BINARY_INPUT_SIZE,
-//                BINARY_IMAGE_MEAN,
-//                BINARY_IMAGE_STD,
-//                BINARY_INPUT_NAME,
-//                BINARY_OUTPUT_NAME,
-//                BINARY_MAX_RESULTS,
-//                BINARY_THRESHOLD);
-
-        // Thai Banknotes classifier - 5 classes
-        classifier = TensorFlowImageClassifier.create(
-                getAssets(),
-                MODEL_FILE,
-                LABEL_FILE,
-                INPUT_SIZE,
-                IMAGE_MEAN,
-                IMAGE_STD,
-                INPUT_NAME,
-                OUTPUT_NAME,
-                MAX_RESULTS,
-                THRESHOLD);
-
-        resultsView = (ResultsView) findViewById(R.id.results);
-        previewWidth = size.getWidth();
-        previewHeight = size.getHeight();
-
-        final Display display = getWindowManager().getDefaultDisplay();
-        final int screenOrientation = display.getRotation();
-
-        Log.i(TAG, String.format("Sensor orientation: %d, Screen orientation: %d", rotation, screenOrientation));
-
-        sensorOrientation = rotation + screenOrientation;
-
-        Log.i(TAG, String.format("Initializing at size %dx%d", previewWidth, previewHeight));
-        rgbBytes = new int[previewWidth * previewHeight];
-        rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888);
-        croppedBitmap = Bitmap.createBitmap(INPUT_SIZE, INPUT_SIZE, Bitmap.Config.ARGB_8888);
-
-        frameToCropTransform = ImageUtils.getTransformationMatrix(
-                previewWidth, previewHeight,
-                INPUT_SIZE, INPUT_SIZE,
-                sensorOrientation, MAINTAIN_ASPECT);
-
-        cropToFrameTransform = new Matrix();
-        frameToCropTransform.invert(cropToFrameTransform);
-
-        yuvBytes = new byte[3][];
-
-        addCallback(
-                new DrawCallback() {
-                    @Override
-                    public void drawCallback(final Canvas canvas) {
-                        renderDebug(canvas);
-                    }
-                });
     }
 
     @Override

@@ -19,6 +19,11 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.thewiz.bankarai.views.OverlayView
+        android:id="@+id/tracking_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <com.thewiz.bankarai.views.OverlayView
         android:id="@+id/debug_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

@@ -1,6 +1,7 @@
 package com.thewiz.bankarai.tfmodels;
 
 import android.graphics.Bitmap;
+import android.graphics.RectF;
 
 import java.util.List;
 
@@ -16,10 +17,13 @@ public interface Classifier {
         private final String title;
         private final Float confidence;
 
-        public Recognition(String id, String title, Float confidence) {
+        private RectF location;
+
+        public Recognition(String id, String title, Float confidence, RectF location) {
             this.id = id;
             this.title = title;
             this.confidence = confidence;
+            this.location = location;
         }
 
         public String getId() {
@@ -32,6 +36,14 @@ public interface Classifier {
 
         public Float getConfidence() {
             return this.confidence;
+        }
+
+        public RectF getLocation() {
+            return new RectF(location);
+        }
+
+        public void setLocation(RectF location) {
+            this.location = location;
         }
 
         @Override
@@ -47,6 +59,10 @@ public interface Classifier {
 
             if (confidence != null) {
                 resultString += String.format("(%.1f%%) ", this.confidence * 100.0f);
+            }
+
+            if (location != null) {
+                resultString += location + " ";
             }
 
             return resultString.trim();
