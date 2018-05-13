@@ -47,10 +47,10 @@ public class ObjectTracker {
 
     static {
         try {
-            System.loadLibrary("tensorflow_demo");
+            System.loadLibrary("tensorflow_bankarai");
             libraryFound = true;
         } catch (UnsatisfiedLinkError e) {
-            Log.e(TAG, "libtensorflow_demo.so not found, tracking unavailable");
+            Log.e(TAG, "tensorflow_bankarai.so not found, tracking unavailable");
         }
     }
 
