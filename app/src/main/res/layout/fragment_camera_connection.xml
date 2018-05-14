@@ -22,7 +22,6 @@
     <com.thewiz.bankarai.views.RecognitionScoreView
         android:id="@+id/results"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center" />
+        android:layout_height="wrap_content"/>
 
 </FrameLayout>

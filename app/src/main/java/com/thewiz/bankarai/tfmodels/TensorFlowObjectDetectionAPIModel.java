@@ -29,7 +29,9 @@ public class TensorFlowObjectDetectionAPIModel implements Classifier {
     private static final String TAG = "TensorFlowObjectDetectionAPIModel";
 
     // Only return this many results.
-    private static final int MAX_RESULTS = 100;
+    private int MAX_RESULTS;
+    private float THRESHOLD;
+    private int NUM_CLASSES;
 
     // Config values.
     private String inputName;
@@ -64,7 +66,9 @@ public class TensorFlowObjectDetectionAPIModel implements Classifier {
             final AssetManager assetManager,
             final String modelFilename,
             final String labelFilename,
-            final int inputSize
+            final int inputSize,
+            final int maxResult,
+            final float threshold
     ) throws IOException {
         final TensorFlowObjectDetectionAPIModel d = new TensorFlowObjectDetectionAPIModel();
 
@@ -95,6 +99,12 @@ public class TensorFlowObjectDetectionAPIModel implements Classifier {
             throw new RuntimeException("Failed to find input Node '" + d.inputName + "'");
         }
         d.inputSize = inputSize;
+
+        d.MAX_RESULTS = maxResult;
+        d.THRESHOLD = threshold;
+        // TODO - dynamic output number of classes
+        d.NUM_CLASSES = 100;
+
         // The outputScoresName node has a shape of [N, NumLocations], where N
         // is the batch size.
         final Operation outputOp1 = g.operation("detection_scores");
@@ -115,9 +125,11 @@ public class TensorFlowObjectDetectionAPIModel implements Classifier {
                 "detection_classes", "num_detections"};
         d.intValues = new int[d.inputSize * d.inputSize];
         d.byteValues = new byte[d.inputSize * d.inputSize * 3];
-        d.outputScores = new float[MAX_RESULTS];
-        d.outputLocations = new float[MAX_RESULTS * 4];
-        d.outputClasses = new float[MAX_RESULTS];
+
+        // TODO - output number below should be number of output = 100
+        d.outputScores = new float[d.NUM_CLASSES];
+        d.outputLocations = new float[d.NUM_CLASSES * 4];
+        d.outputClasses = new float[d.NUM_CLASSES];
         d.outputNumDetections = new float[1];
         return d;
     }
@@ -150,9 +162,9 @@ public class TensorFlowObjectDetectionAPIModel implements Classifier {
 
         // Copy the output Tensor back into the output array.
         Trace.beginSection("fetch");
-        outputLocations = new float[MAX_RESULTS * 4];
-        outputScores = new float[MAX_RESULTS];
-        outputClasses = new float[MAX_RESULTS];
+        outputLocations = new float[this.NUM_CLASSES * 4];
+        outputScores = new float[this.NUM_CLASSES];
+        outputClasses = new float[this.NUM_CLASSES];
         outputNumDetections = new float[1];
         inferenceInterface.fetch(outputNames[0], outputLocations);
         inferenceInterface.fetch(outputNames[1], outputScores);
@@ -161,33 +173,36 @@ public class TensorFlowObjectDetectionAPIModel implements Classifier {
         Trace.endSection();
 
         // Find the best detections.
-        final PriorityQueue<Recognition> pq =
-                new PriorityQueue<Recognition>(
-                        1,
-                        new Comparator<Recognition>() {
-                            @Override
-                            public int compare(final Recognition lhs, final Recognition rhs) {
-                                // Intentionally reversed to put high confidence at the head of the queue.
-                                return Float.compare(rhs.getConfidence(), lhs.getConfidence());
-                            }
-                        });
+        final PriorityQueue<Recognition> pq = new PriorityQueue<Recognition>(
+                1,
+                new Comparator<Recognition>() {
+                    @Override
+                    public int compare(Recognition lhs, Recognition rhs) {
+                        // Intentionally reversed to put high confidence at the head of the queue.
+                        return Float.compare(rhs.getConfidence(), lhs.getConfidence());
+                    }
+                }
+        );
 
-        // Scale them back to the input size.
+        // Scale them back to the input size, If output more then threshold add it to the queue.
         for (int i = 0; i < outputScores.length; ++i) {
-            final RectF detection =
-                    new RectF(
-                            outputLocations[4 * i + 1] * inputSize,
-                            outputLocations[4 * i] * inputSize,
-                            outputLocations[4 * i + 3] * inputSize,
-                            outputLocations[4 * i + 2] * inputSize);
-            pq.add(
-                    new Recognition("" + i, labels.get((int) outputClasses[i]), outputScores[i], detection));
+            if (this.outputScores[i] > this.THRESHOLD) {
+                final RectF detection = new RectF(
+                        outputLocations[4 * i + 1] * inputSize,
+                        outputLocations[4 * i] * inputSize,
+                        outputLocations[4 * i + 3] * inputSize,
+                        outputLocations[4 * i + 2] * inputSize);
+                pq.add(new Recognition("" + i, labels.get((int) outputClasses[i]), outputScores[i], detection));
+            }
         }
 
+        // Get N number of max result from the queue.
         final ArrayList<Recognition> recognitions = new ArrayList<Recognition>();
-        for (int i = 0; i < Math.min(pq.size(), MAX_RESULTS); ++i) {
+        int recognitionsSize = Math.min(pq.size(), this.MAX_RESULTS);
+        for (int i = 0; i < recognitionsSize; ++i) {
             recognitions.add(pq.poll());
         }
+
         Trace.endSection(); // "recognizeImage"
         return recognitions;
     }
