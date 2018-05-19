@@ -44,7 +44,8 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     // (Detector) Config Model
     private static final int TF_OD_INPUT_SIZE = 300;
     private static final int TF_OD_MAX_RESULTS = 1;
-    private static final float TF_OD_THRESHOLD = 0.5f;
+    private static final int TF_OD_NUM_CLASSES = 6;
+    private static final float TF_OD_THRESHOLD = 0.7f;
 
     // (Classifier) Thai Banknotes - Using Inception
 //    private static final int INPUT_SIZE = 128;
@@ -65,8 +66,8 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
     // Assets
     // (Detector) Banknotes
-    private static final String TF_OD_API_MODEL_FILE = "file:///android_asset/ssd_mobilenet_v1_android_export.pb";
-    private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/coco_labels_list.txt";
+    private static final String TF_OD_API_MODEL_FILE = "file:///android_asset/card.pb";
+    private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/card.txt";
 
     // (Classifier) Thai Banknotes
 //    private static final String MODEL_FILE = "file:///android_asset/binary_banknotes.pb";
@@ -131,6 +132,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
                     TF_OD_API_LABELS_FILE,
                     TF_OD_INPUT_SIZE,
                     TF_OD_MAX_RESULTS,
+                    TF_OD_NUM_CLASSES,
                     TF_OD_THRESHOLD);
 
             cropSize = TF_OD_INPUT_SIZE;
@@ -250,9 +252,10 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
                         // TODO - only one ouput to this input
                         if (results.size() > 0) {
                             // DO - classifier
+                            Log.d(TAG, "object detected :" + results.size());
                             Log.d(TAG, "object detected : " + results.get(0).getTitle());
                             classifierFlow(results.get(0), croppedBitmap);
-                        }else{
+                        } else {
                             // Remove classifier result view
                             resultsView.setResults(null);
                         }
@@ -277,7 +280,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
         // Show result
         showClassifyResults(classifiedResults);
 
-        if(classifiedResults.size() > 0){
+        if (classifiedResults.size() > 0) {
             Log.d(TAG, "object classified : " + classifiedResults.get(0).getTitle());
         }
     }
@@ -333,7 +336,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
             mappedRecognitions.add(result);
         }
 
-        // Update tracker layout
+        // TODO - Update tracker layout, Can be remove
         tracker.trackResults(mappedRecognitions, luminanceCopy, currTimestamp);
         trackingOverlay.postInvalidate();
     }

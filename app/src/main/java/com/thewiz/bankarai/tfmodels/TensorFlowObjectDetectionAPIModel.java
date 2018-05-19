@@ -68,6 +68,7 @@ public class TensorFlowObjectDetectionAPIModel implements Classifier {
             final String labelFilename,
             final int inputSize,
             final int maxResult,
+            final int numClasses,
             final float threshold
     ) throws IOException {
         final TensorFlowObjectDetectionAPIModel d = new TensorFlowObjectDetectionAPIModel();
@@ -102,8 +103,7 @@ public class TensorFlowObjectDetectionAPIModel implements Classifier {
 
         d.MAX_RESULTS = maxResult;
         d.THRESHOLD = threshold;
-        // TODO - dynamic output number of classes
-        d.NUM_CLASSES = 100;
+        d.NUM_CLASSES = numClasses;
 
         // The outputScoresName node has a shape of [N, NumLocations], where N
         // is the batch size.
@@ -162,9 +162,9 @@ public class TensorFlowObjectDetectionAPIModel implements Classifier {
 
         // Copy the output Tensor back into the output array.
         Trace.beginSection("fetch");
-        outputLocations = new float[this.NUM_CLASSES * 4];
-        outputScores = new float[this.NUM_CLASSES];
-        outputClasses = new float[this.NUM_CLASSES];
+        outputLocations = new float[NUM_CLASSES * 4];
+        outputScores = new float[NUM_CLASSES];
+        outputClasses = new float[NUM_CLASSES];
         outputNumDetections = new float[1];
         inferenceInterface.fetch(outputNames[0], outputLocations);
         inferenceInterface.fetch(outputNames[1], outputScores);
