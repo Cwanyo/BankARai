@@ -66,8 +66,8 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
     // Assets
     // (Detector) Banknotes
-    private static final String TF_OD_API_MODEL_FILE = "file:///android_asset/card.pb";
-    private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/card.txt";
+    private static final String TF_OD_API_MODEL_FILE = "file:///android_asset/thaibanknote.pb";
+    private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/thaibanknote.txt";
 
     // (Classifier) Thai Banknotes
 //    private static final String MODEL_FILE = "file:///android_asset/binary_banknotes.pb";
