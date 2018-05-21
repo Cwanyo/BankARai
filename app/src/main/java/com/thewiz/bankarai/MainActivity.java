@@ -47,34 +47,10 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private static final int TF_OD_NUM_CLASSES = 6;
     private static final float TF_OD_THRESHOLD = 0.7f;
 
-    // (Classifier) Thai Banknotes - Using Inception
-//    private static final int INPUT_SIZE = 128;
-//    private static final int IMAGE_MEAN = 128;
-//    private static final float IMAGE_STD = 128.0f;
-//    private static final String INPUT_NAME = "conv2d_1_input";
-//    private static final String OUTPUT_NAME = "dense_2/Softmax";
-//    private static final int MAX_RESULTS = 1;
-//    private static final float THRESHOLD = 0.7f;
-
-    private static final int INPUT_SIZE = 224;
-    private static final int IMAGE_MEAN = 117;
-    private static final float IMAGE_STD = 1;
-    private static final String INPUT_NAME = "input";
-    private static final String OUTPUT_NAME = "output";
-    private static final int MAX_RESULTS = 1;
-    private static final float THRESHOLD = 0.1f;
-
     // Assets
     // (Detector) Banknotes
     private static final String TF_OD_API_MODEL_FILE = "file:///android_asset/thaibanknote.pb";
     private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/thaibanknote.txt";
-
-    // (Classifier) Thai Banknotes
-//    private static final String MODEL_FILE = "file:///android_asset/binary_banknotes.pb";
-//    private static final String LABEL_FILE = "file:///android_asset/binary_banknotes.txt";
-
-    private static final String MODEL_FILE = "file:///android_asset/tensorflow_inception_graph.pb";
-    private static final String LABEL_FILE = "file:///android_asset/imagenet_comp_graph_label_strings.txt";
 
     // TODO - check, = false
     private static final boolean MAINTAIN_ASPECT = false;
@@ -108,7 +84,6 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private byte[] luminanceCopy;
 
     private OverlayView trackingOverlay;
-    private ResultsView resultsView;
     private BorderedText borderedText;
 
     private static final boolean SAVE_PREVIEW_BITMAP = false;
@@ -145,19 +120,6 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
             finish();
         }
 
-        // Classifier
-        classifier = TensorFlowImageClassifier.create(
-                getAssets(),
-                MODEL_FILE,
-                LABEL_FILE,
-                INPUT_SIZE,
-                IMAGE_MEAN,
-                IMAGE_STD,
-                INPUT_NAME,
-                OUTPUT_NAME,
-                MAX_RESULTS,
-                THRESHOLD);
-
         previewWidth = size.getWidth();
         previewHeight = size.getHeight();
 
@@ -178,7 +140,6 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
         frameToCropTransform.invert(cropToFrameTransform);
 
         trackingOverlay = (OverlayView) findViewById(R.id.tracking_overlay);
-        resultsView = (ResultsView) findViewById(R.id.results);
 
         trackingOverlay.addCallback(
                 new DrawCallback() {
@@ -248,17 +209,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
                         // TODO - only one output
                         final List<Recognition> results = detector.recognizeImage(croppedBitmap);
 
-                        // Classifier
-                        // TODO - only one ouput to this input
-                        if (results.size() > 0) {
-                            // DO - classifier
-                            Log.d(TAG, "object detected :" + results.size());
-                            Log.d(TAG, "object detected : " + results.get(0).getTitle());
-                            classifierFlow(results.get(0), croppedBitmap);
-                        } else {
-                            // Remove classifier result view
-                            resultsView.setResults(null);
-                        }
+                        speakResult(results);
 
                         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
@@ -269,52 +220,6 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
                         computingDetection = false;
                     }
                 });
-    }
-
-    private void classifierFlow(Recognition detectedResult, Bitmap input) {
-        // Get the image box
-        Bitmap newImage = getImageFromDetector(detectedResult, input);
-
-        // Classify
-        final List<Recognition> classifiedResults = classifier.recognizeImage(newImage);
-        // Show result
-        showClassifyResults(classifiedResults);
-
-        if (classifiedResults.size() > 0) {
-            Log.d(TAG, "object classified : " + classifiedResults.get(0).getTitle());
-        }
-    }
-
-    private Bitmap getImageFromDetector(Recognition result, Bitmap input) {
-        RectF l = result.getLocation();
-
-        int x = (int) l.left;
-        int y = (int) l.top;
-        int width = (int) (l.right - l.left);
-        int height = (int) (l.bottom - l.top);
-
-        Bitmap temp = Bitmap.createBitmap(input, x, y, width, height);
-
-        Bitmap newImage = Bitmap.createBitmap(INPUT_SIZE, INPUT_SIZE, Config.ARGB_8888);
-
-        Matrix transformation = ImageUtils.getTransformationMatrix(
-                temp.getWidth(), temp.getHeight(),
-                INPUT_SIZE, INPUT_SIZE,
-                0, true);
-        transformation.invert(new Matrix());
-
-        Canvas canvas = new Canvas(newImage);
-        canvas.drawBitmap(temp, transformation, null);
-
-        return newImage;
-    }
-
-    private void showClassifyResults(List<Recognition> results) {
-        if (results.size() > 0) {
-            resultsView.setResults(results);
-        } else {
-            resultsView.setResults(null);
-        }
     }
 
     private void drawRect(List<Recognition> results, long currTimestamp) {
@@ -380,7 +285,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
     private void speakResult(List<Recognition> results) {
 
-        if (results.size() == 0 || results.get(0).getTitle().equals("unknown")) {
+        if (results.size() == 0 || results.get(0).getTitle().equals("???")) {
             Log.d(TAG, "banknote not in frame");
             ts.stopSpeak();
             return;

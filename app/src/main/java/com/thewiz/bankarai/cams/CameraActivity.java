@@ -64,7 +64,6 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     private String[] language = new String[]{"en", "th"};
 
     public Classifier detector;
-    public Classifier classifier;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -273,10 +272,6 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
         // Close all
         if (detector != null) {
             detector.close();
-        }
-
-        if (classifier != null) {
-            classifier.close();
         }
 
         super.onDestroy();
