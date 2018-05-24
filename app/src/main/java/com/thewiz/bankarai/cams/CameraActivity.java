@@ -63,6 +63,7 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     private int languageIndex = 0;
     private String[] language = new String[]{"en", "th"};
 
+    public Classifier binaryClassifier;
     public Classifier detector;
 
     @Override
@@ -270,6 +271,10 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
         ts.close();
 
         // Close all
+        if (binaryClassifier != null) {
+            binaryClassifier.close();
+        }
+
         if (detector != null) {
             detector.close();
         }

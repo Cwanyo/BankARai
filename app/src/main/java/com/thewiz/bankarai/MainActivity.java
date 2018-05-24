@@ -41,6 +41,24 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
     private final static String TAG = "MainActivity";
 
+    // (Classifier) Binary Banknote - Using Mobilenet
+//    private static final int BINARY_INPUT_SIZE = 224;
+//    private static final int BINARY_IMAGE_MEAN = 128;
+//    private static final float BINARY_IMAGE_STD = 128.0f;
+//    private static final String BINARY_INPUT_NAME = "input";
+//    private static final String BINARY_OUTPUT_NAME = "final_result";
+//    private static final int BINARY_MAX_RESULTS = 1;
+//    private static final float BINARY_THRESHOLD = 0.7f;
+
+    // (Classifier) Binary Banknote - Using Inception
+    private static final int BINARY_INPUT_SIZE = 299;
+    private static final int BINARY_IMAGE_MEAN = 128;
+    private static final float BINARY_IMAGE_STD = 128.0f;
+    private static final String BINARY_INPUT_NAME = "Mul";
+    private static final String BINARY_OUTPUT_NAME = "final_result";
+    private static final int BINARY_MAX_RESULTS = 1;
+    private static final float BINARY_THRESHOLD = 0.7f;
+
     // (Detector) Config Model
     private static final int TF_OD_INPUT_SIZE = 300;
     private static final int TF_OD_MAX_RESULTS = 1;
@@ -48,6 +66,11 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private static final float TF_OD_THRESHOLD = 0.7f;
 
     // Assets
+    // (Classifier) Binary Banknotes
+//    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_banknote.pb";
+    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_banknote_incep.pb";
+    private static final String BINARY_LABEL_FILE = "file:///android_asset/binary_banknote.txt";
+
     // (Detector) Banknotes
     private static final String TF_OD_API_MODEL_FILE = "file:///android_asset/thaibanknote.pb";
     private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/thaibanknote.txt";
@@ -84,6 +107,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private byte[] luminanceCopy;
 
     private OverlayView trackingOverlay;
+    private ResultsView resultsView;
     private BorderedText borderedText;
 
     private static final boolean SAVE_PREVIEW_BITMAP = false;
@@ -96,6 +120,19 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
                         TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());
         borderedText = new BorderedText(textSizePx);
         borderedText.setTypeface(Typeface.MONOSPACE);
+
+        // Classifier
+        binaryClassifier = TensorFlowImageClassifier.create(
+                getAssets(),
+                BINARY_MODEL_FILE,
+                BINARY_LABEL_FILE,
+                BINARY_INPUT_SIZE,
+                BINARY_IMAGE_MEAN,
+                BINARY_IMAGE_STD,
+                BINARY_INPUT_NAME,
+                BINARY_OUTPUT_NAME,
+                BINARY_MAX_RESULTS,
+                BINARY_THRESHOLD);
 
         // Detector
         tracker = new MultiBoxTracker(this);
@@ -140,6 +177,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
         frameToCropTransform.invert(cropToFrameTransform);
 
         trackingOverlay = (OverlayView) findViewById(R.id.tracking_overlay);
+        resultsView = (ResultsView) findViewById(R.id.results);
 
         trackingOverlay.addCallback(
                 new DrawCallback() {
@@ -205,21 +243,48 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 //                        Log.i(TAG,"Running detection on image " + currTimestamp);
                         final long startTime = SystemClock.uptimeMillis();
 
-                        // Detector
-                        // TODO - only one output
-                        final List<Recognition> results = detector.recognizeImage(croppedBitmap);
+                        List<Classifier.Recognition> binaryResult;
+                        List<Recognition> detectionResults;
 
-                        speakResult(results);
+                        binaryResult = binaryClassifier.recognizeImage(resizeImageForClassifier(croppedBitmap));
 
+                        // If banknote in frame
+                        if (binaryResult.size() > 0 && binaryResult.get(0).getTitle().equals("banknote")) {
+                            // Show classifier result view
+                            resultsView.setResults(binaryResult);
+
+                            // Detector
+                            // TODO - only one output
+                            detectionResults = detector.recognizeImage(croppedBitmap);
+                            speakResult(detectionResults);
+                            // Draw Rect of object
+                            drawRect(detectionResults, currTimestamp);
+                        } else {
+                            // Remove classifier result view
+                            Log.i(TAG, "nothing classified");
+                            resultsView.setResults(null);
+                            ts.stopSpeak();
+                        }
                         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
-
-                        // Draw Rect of object
-                        drawRect(results, currTimestamp);
 
                         requestRender();
                         computingDetection = false;
                     }
                 });
+    }
+
+    private Bitmap resizeImageForClassifier(Bitmap input) {
+        Bitmap newImage = Bitmap.createBitmap(BINARY_INPUT_SIZE, BINARY_INPUT_SIZE, Config.ARGB_8888);
+        Matrix transformation = ImageUtils.getTransformationMatrix(
+                input.getWidth(), input.getHeight(),
+                BINARY_INPUT_SIZE, BINARY_INPUT_SIZE,
+                0, true);
+        transformation.invert(new Matrix());
+
+        Canvas canvas = new Canvas(newImage);
+        canvas.drawBitmap(input, transformation, null);
+
+        return newImage;
     }
 
     private void drawRect(List<Recognition> results, long currTimestamp) {
