@@ -17,6 +17,7 @@ import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
 import android.view.Display;
+import android.view.MotionEvent;
 import android.widget.Toast;
 
 import com.thewiz.bankarai.cams.CameraActivity;
@@ -42,33 +43,33 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private final static String TAG = "MainActivity";
 
     // (Classifier) Binary Banknote - Using Mobilenet
-//    private static final int BINARY_INPUT_SIZE = 224;
-//    private static final int BINARY_IMAGE_MEAN = 128;
-//    private static final float BINARY_IMAGE_STD = 128.0f;
-//    private static final String BINARY_INPUT_NAME = "input";
-//    private static final String BINARY_OUTPUT_NAME = "final_result";
-//    private static final int BINARY_MAX_RESULTS = 1;
-//    private static final float BINARY_THRESHOLD = 0.7f;
-
-    // (Classifier) Binary Banknote - Using Inception
-    private static final int BINARY_INPUT_SIZE = 299;
+    private static final int BINARY_INPUT_SIZE = 224;
     private static final int BINARY_IMAGE_MEAN = 128;
     private static final float BINARY_IMAGE_STD = 128.0f;
-    private static final String BINARY_INPUT_NAME = "Mul";
+    private static final String BINARY_INPUT_NAME = "input";
     private static final String BINARY_OUTPUT_NAME = "final_result";
     private static final int BINARY_MAX_RESULTS = 1;
-    private static final float BINARY_THRESHOLD = 0.7f;
+    private static final float BINARY_THRESHOLD = 0.85f;
+
+    // (Classifier) Binary Banknote - Using Inception
+//    private static final int BINARY_INPUT_SIZE = 299;
+//    private static final int BINARY_IMAGE_MEAN = 128;
+//    private static final float BINARY_IMAGE_STD = 128.0f;
+//    private static final String BINARY_INPUT_NAME = "Mul";
+//    private static final String BINARY_OUTPUT_NAME = "final_result";
+//    private static final int BINARY_MAX_RESULTS = 1;
+//    private static final float BINARY_THRESHOLD = 0.8f;
 
     // (Detector) Config Model
     private static final int TF_OD_INPUT_SIZE = 300;
     private static final int TF_OD_MAX_RESULTS = 1;
     private static final int TF_OD_NUM_CLASSES = 6;
-    private static final float TF_OD_THRESHOLD = 0.7f;
+    private static final float TF_OD_THRESHOLD = 0.6f;
 
     // Assets
     // (Classifier) Binary Banknotes
-//    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_banknote.pb";
-    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_banknote_incep.pb";
+    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_banknote.pb";
+    //    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_banknote_incep.pb";
     private static final String BINARY_LABEL_FILE = "file:///android_asset/binary_banknote.txt";
 
     // (Detector) Banknotes
@@ -102,7 +103,8 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private Matrix frameToCropTransform;
     private Matrix cropToFrameTransform;
 
-    private MultiBoxTracker tracker;
+    // TODO - Object tracker
+//    private MultiBoxTracker tracker;
 
     private byte[] luminanceCopy;
 
@@ -135,7 +137,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
                 BINARY_THRESHOLD);
 
         // Detector
-        tracker = new MultiBoxTracker(this);
+//        tracker = new MultiBoxTracker(this);
         int cropSize = TF_OD_INPUT_SIZE;
         try {
             detector = TensorFlowObjectDetectionAPIModel.create(
@@ -179,16 +181,16 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
         trackingOverlay = (OverlayView) findViewById(R.id.tracking_overlay);
         resultsView = (ResultsView) findViewById(R.id.results);
 
-        trackingOverlay.addCallback(
-                new DrawCallback() {
-                    @Override
-                    public void drawCallback(final Canvas canvas) {
-                        tracker.draw(canvas);
-                        if (isDebug()) {
-                            tracker.drawDebug(canvas);
-                        }
-                    }
-                });
+//        trackingOverlay.addCallback(
+//                new DrawCallback() {
+//                    @Override
+//                    public void drawCallback(final Canvas canvas) {
+//                        tracker.draw(canvas);
+//                        if (isDebug()) {
+//                            tracker.drawDebug(canvas);
+//                        }
+//                    }
+//                });
 
         addCallback(
                 new DrawCallback() {
@@ -204,14 +206,14 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
         ++timestamp;
         final long currTimestamp = timestamp;
         byte[] originalLuminance = getLuminance();
-        tracker.onFrame(
-                previewWidth,
-                previewHeight,
-                getLuminanceStride(),
-                sensorOrientation,
-                originalLuminance,
-                timestamp);
-        trackingOverlay.postInvalidate();
+//        tracker.onFrame(
+//                previewWidth,
+//                previewHeight,
+//                getLuminanceStride(),
+//                sensorOrientation,
+//                originalLuminance,
+//                timestamp);
+//        trackingOverlay.postInvalidate();
 
         // No mutex needed as this method is not reentrant.
         if (computingDetection) {
@@ -243,34 +245,63 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 //                        Log.i(TAG,"Running detection on image " + currTimestamp);
                         final long startTime = SystemClock.uptimeMillis();
 
-                        List<Classifier.Recognition> binaryResult;
-                        List<Recognition> detectionResults;
+                        if (pressed) {
+                            // Binary classification
+                            List<Classifier.Recognition> binaryResult = binaryClassifier.recognizeImage(resizeImageForClassifier(croppedBitmap));
 
-                        binaryResult = binaryClassifier.recognizeImage(resizeImageForClassifier(croppedBitmap));
-
-                        // If banknote in frame
-                        if (binaryResult.size() > 0 && binaryResult.get(0).getTitle().equals("banknote")) {
-                            // Show classifier result view
-                            resultsView.setResults(binaryResult);
-
-                            // Detector
-                            // TODO - only one output
-                            detectionResults = detector.recognizeImage(croppedBitmap);
-                            speakResult(detectionResults);
-                            // Draw Rect of object
-                            drawRect(detectionResults, currTimestamp);
+                            // If banknote in frame
+                            if (binaryResult.size() > 0 && binaryResult.get(0).getTitle().equals("banknote")) {
+                                // Show classifier result view
+                                resultsView.setResults(binaryResult);
+                                // Detector
+                                // TODO - only one output
+                                List<Recognition> detectionResult = detector.recognizeImage(croppedBitmap);
+                                speakResult(detectionResult);
+                                // Draw Rect of object
+                                drawRect(detectionResult, currTimestamp);
+                            } else {
+                                // Remove classifier result view
+                                Log.i(TAG, "nothing classified");
+                                resultsView.setResults(null);
+                                speakResult(null);
+                            }
                         } else {
-                            // Remove classifier result view
-                            Log.i(TAG, "nothing classified");
                             resultsView.setResults(null);
                             ts.stopSpeak();
+                            preResult = "null";
                         }
+
                         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
                         requestRender();
                         computingDetection = false;
                     }
                 });
+    }
+
+    String preResult = "";
+
+    private void speakResult(List<Recognition> results) {
+        if (results == null || results.size() == 0
+                || results.get(0).getTitle().equals("???")
+                || results.get(0).getTitle().equals("unknown")) {
+            Log.d(TAG, "banknote not in frame");
+            if (!preResult.equals("null")) {
+                ts.stopSpeak();
+            }
+            preResult = "null";
+            // TODO - running voice
+            ts.sayRunning();
+        } else if (!(preResult.equals(results.get(0).getTitle()))) {
+            Log.d(TAG, "new banknote detected");
+            ts.stopSpeak();
+            ts.speakText(results.get(0).getTitle(), 1);
+            preResult = results.get(0).getTitle();
+        } else if (preResult.equals(results.get(0).getTitle())) {
+            Log.d(TAG, "same banknote detected");
+            ts.speakText(results.get(0).getTitle(), 1);
+            preResult = results.get(0).getTitle();
+        }
     }
 
     private Bitmap resizeImageForClassifier(Bitmap input) {
@@ -307,63 +338,8 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
         }
 
         // TODO - Update tracker layout, Can be remove
-        tracker.trackResults(mappedRecognitions, luminanceCopy, currTimestamp);
+//        tracker.trackResults(mappedRecognitions, luminanceCopy, currTimestamp);
         trackingOverlay.postInvalidate();
-    }
-
-    // TODO - Make these fcuntion as static in TTS clsss
-    // TODO - This for double model
-
-//    private Boolean banknoteInFrame(List<Recognition> results) {
-//        if (results.size() == 0 || results.get(0).getTitle().equals("unknown")) {
-//            Log.d(TAG, "banknote not in frame");
-//            ts.stopSpeak();
-//            return false;
-//        } else {
-//            Log.d(TAG, "banknote in frame");
-//            return true;
-//        }
-//    }
-//
-//    String preObject = "";
-//
-//    private void speakResult(List<Recognition> results) {
-//
-//        if (results.size() == 0) {
-//            Log.d(TAG, "banknote in frame but can not be identified");
-//            ts.stopSpeak();
-//            return;
-//        } else if (!(preObject.equals(results.get(0).getTitle()))) {
-//            Log.d(TAG, "new banknote detected");
-//            ts.stopSpeak();
-//            ts.speakText(results.get(0).getTitle(), 1);
-//        } else {
-//            Log.d(TAG, "same banknote detected");
-//            ts.speakText(results.get(0).getTitle(), 1);
-//        }
-//
-//        preObject = results.get(0).getTitle();
-//    }
-
-    // TODO - This for single model
-    String preObject = "";
-
-    private void speakResult(List<Recognition> results) {
-
-        if (results.size() == 0 || results.get(0).getTitle().equals("???")) {
-            Log.d(TAG, "banknote not in frame");
-            ts.stopSpeak();
-            return;
-        } else if (!(preObject.equals(results.get(0).getTitle()))) {
-            Log.d(TAG, "new banknote detected");
-            ts.stopSpeak();
-            ts.speakText(results.get(0).getTitle(), 1);
-        } else {
-            Log.d(TAG, "same banknote detected");
-            ts.speakText(results.get(0).getTitle(), 1);
-        }
-
-        preObject = results.get(0).getTitle();
     }
 
     @Override
@@ -402,14 +378,15 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
         canvas.drawBitmap(copy, matrix, new Paint());
 
         final Vector<String> lines = new Vector<String>();
-        if (detector != null) {
-            final String statString = detector.getStatString();
-            final String[] statLines = statString.split("\n");
-            for (final String line : statLines) {
-                lines.add(line);
-            }
-        }
-        lines.add("");
+        // TODO - display node infos
+//        if (detector != null) {
+//            final String statString = detector.getStatString();
+//            final String[] statLines = statString.split("\n");
+//            for (final String line : statLines) {
+//                lines.add(line);
+//            }
+//        }
+//        lines.add("");
 
         lines.add("Frame: " + previewWidth + "x" + previewHeight);
         lines.add("Crop: " + copy.getWidth() + "x" + copy.getHeight());

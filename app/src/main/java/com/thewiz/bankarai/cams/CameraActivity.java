@@ -20,7 +20,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
+import android.view.GestureDetector;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -33,7 +35,9 @@ import com.thewiz.bankarai.views.OverlayView;
 
 import java.nio.ByteBuffer;
 
-public abstract class CameraActivity extends AppCompatActivity implements OnImageAvailableListener, Camera.PreviewCallback {
+public abstract class CameraActivity extends AppCompatActivity implements
+        OnImageAvailableListener,
+        Camera.PreviewCallback{
 
     private static final String TAG = "CameraActivity";
 
@@ -60,9 +64,8 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
 
     public TextSpeaker ts;
     private final int ACT_CHECK_TTS_DATA = 1000;
-    private int languageIndex = 0;
-    private String[] language = new String[]{"en", "th"};
 
+    public Boolean pressed = false;
     public Classifier binaryClassifier;
     public Classifier detector;
 
@@ -74,7 +77,7 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
 
         setContentView(R.layout.activity_main);
 
-        ts = new TextSpeaker(this, language[languageIndex]);
+        ts = new TextSpeaker(this, 1);
 
         // TODO - Check TTS data available
         /*Intent ttsIntent = new Intent();
@@ -455,6 +458,8 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     public void onSetDebug(final boolean debug) {
     }
 
+    // TODO - Events control
+
     @Override
     public boolean onKeyDown(final int keyCode, final KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
@@ -463,21 +468,26 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
             onSetDebug(debug);
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-            switchTTSLanguage();
+            ts.switchTTSLanguage();
             return true;
         }
 
         return super.onKeyDown(keyCode, event);
     }
 
-    private void switchTTSLanguage() {
-        languageIndex++;
-        if (languageIndex >= language.length) {
-            languageIndex = 0;
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction()){
+            case MotionEvent.ACTION_DOWN:
+                pressed = true;
+                ts.doneWelcome = true;
+                break;
+            case MotionEvent.ACTION_UP:
+                pressed = false;
+                break;
         }
-        Log.d(TAG, "CurrLagIndex: " + languageIndex);
-        ts.close();
-        ts = new TextSpeaker(this, language[languageIndex]);
+
+        return pressed;
     }
 
     protected void readyForNextImage() {
