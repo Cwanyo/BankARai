@@ -42,7 +42,8 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
     private final static String TAG = "MainActivity";
 
-    // (Classifier) Binary Banknote - Using Mobilenet
+    // Config Model
+    // (Classifier)
     private static final int BINARY_INPUT_SIZE = 224;
     private static final int BINARY_IMAGE_MEAN = 128;
     private static final float BINARY_IMAGE_STD = 128.0f;
@@ -51,27 +52,18 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private static final int BINARY_MAX_RESULTS = 1;
     private static final float BINARY_THRESHOLD = 0.8f;
 
-    // (Classifier) Binary Banknote - Using Inception
-//    private static final int BINARY_INPUT_SIZE = 299;
-//    private static final int BINARY_IMAGE_MEAN = 128;
-//    private static final float BINARY_IMAGE_STD = 128.0f;
-//    private static final String BINARY_INPUT_NAME = "Mul";
-//    private static final String BINARY_OUTPUT_NAME = "final_result";
-//    private static final int BINARY_MAX_RESULTS = 1;
-//    private static final float BINARY_THRESHOLD = 0.8f;
-
-    // (Detector) Config Model
+    // (Detector)
     private static final int TF_OD_INPUT_SIZE = 300;
     private static final int TF_OD_MAX_RESULTS = 1;
     private static final int TF_OD_NUM_CLASSES = 6;
     private static final float TF_OD_THRESHOLD = 0.8f;
 
     // Assets
-    // (Classifier) Binary Banknotes
+    // (Classifier)
     private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_classification.pb";
     private static final String BINARY_LABEL_FILE = "file:///android_asset/binary_classification.txt";
 
-    // (Detector) Banknotes
+    // (Detector)
     private static final String TF_OD_API_MODEL_FILE = "file:///android_asset/banknotes_detection.pb";
     private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/banknotes_detection.txt";
 
