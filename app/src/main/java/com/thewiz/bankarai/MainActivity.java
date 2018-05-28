@@ -49,7 +49,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private static final String BINARY_INPUT_NAME = "input";
     private static final String BINARY_OUTPUT_NAME = "final_result";
     private static final int BINARY_MAX_RESULTS = 1;
-    private static final float BINARY_THRESHOLD = 0.85f;
+    private static final float BINARY_THRESHOLD = 0.8f;
 
     // (Classifier) Binary Banknote - Using Inception
 //    private static final int BINARY_INPUT_SIZE = 299;
@@ -64,17 +64,16 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
     private static final int TF_OD_INPUT_SIZE = 300;
     private static final int TF_OD_MAX_RESULTS = 1;
     private static final int TF_OD_NUM_CLASSES = 6;
-    private static final float TF_OD_THRESHOLD = 0.6f;
+    private static final float TF_OD_THRESHOLD = 0.8f;
 
     // Assets
     // (Classifier) Binary Banknotes
-    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_banknote.pb";
-    //    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_banknote_incep.pb";
-    private static final String BINARY_LABEL_FILE = "file:///android_asset/binary_banknote.txt";
+    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_classification.pb";
+    private static final String BINARY_LABEL_FILE = "file:///android_asset/binary_classification.txt";
 
     // (Detector) Banknotes
-    private static final String TF_OD_API_MODEL_FILE = "file:///android_asset/thaibanknote.pb";
-    private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/thaibanknote.txt";
+    private static final String TF_OD_API_MODEL_FILE = "file:///android_asset/banknotes_detection.pb";
+    private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/banknotes_detection.txt";
 
     // TODO - check, = false
     private static final boolean MAINTAIN_ASPECT = false;
