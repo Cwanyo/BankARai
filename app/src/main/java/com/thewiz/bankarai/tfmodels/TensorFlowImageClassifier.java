@@ -128,20 +128,20 @@ public class TensorFlowImageClassifier implements Classifier {
 
         Trace.beginSection("preprocessBitmap");
         // Preprocess bitmap image from 0-255 int to float based.
-//        bitmap.getPixels(this.intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
-//        for (int i = 0; i < this.intValues.length; ++i) {
-//            final int val = this.intValues[i];
-//            this.floatValues[i * 3 + 0] = ((val >> 16) & 0xFF) * 1.0f / 255.0f;
-//            this.floatValues[i * 3 + 1] = ((val >> 8) & 0xFF) * 1.0f / 255.0f;
-//            this.floatValues[i * 3 + 2] = (val & 0xFF) * 1.0f / 255.0f;
-//        }
-        bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
-        for (int i = 0; i < intValues.length; ++i) {
-            final int val = intValues[i];
-            floatValues[i * 3 + 0] = (((val >> 16) & 0xFF) - imageMean) / imageStd;
-            floatValues[i * 3 + 1] = (((val >> 8) & 0xFF) - imageMean) / imageStd;
-            floatValues[i * 3 + 2] = ((val & 0xFF) - imageMean) / imageStd;
+        bitmap.getPixels(this.intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
+        for (int i = 0; i < this.intValues.length; ++i) {
+            final int val = this.intValues[i];
+            this.floatValues[i * 3 + 0] = ((val >> 16) & 0xFF) * 1.0f / 255.0f;
+            this.floatValues[i * 3 + 1] = ((val >> 8) & 0xFF) * 1.0f / 255.0f;
+            this.floatValues[i * 3 + 2] = (val & 0xFF) * 1.0f / 255.0f;
         }
+//        bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
+//        for (int i = 0; i < intValues.length; ++i) {
+//            final int val = intValues[i];
+//            floatValues[i * 3 + 0] = (((val >> 16) & 0xFF) - imageMean) / imageStd;
+//            floatValues[i * 3 + 1] = (((val >> 8) & 0xFF) - imageMean) / imageStd;
+//            floatValues[i * 3 + 2] = ((val & 0xFF) - imageMean) / imageStd;
+//        }
         Trace.endSection();
 
         // Copy the input data into TensorFlow.

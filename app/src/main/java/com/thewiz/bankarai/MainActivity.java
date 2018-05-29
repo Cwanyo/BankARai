@@ -44,11 +44,11 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
     // Config Model
     // (Classifier)
-    private static final int BINARY_INPUT_SIZE = 224;
-    private static final int BINARY_IMAGE_MEAN = 128;
+    private static final int BINARY_INPUT_SIZE = 300;
+    private static final int BINARY_IMAGE_MEAN = 300;
     private static final float BINARY_IMAGE_STD = 128.0f;
-    private static final String BINARY_INPUT_NAME = "input";
-    private static final String BINARY_OUTPUT_NAME = "final_result";
+    private static final String BINARY_INPUT_NAME = "conv2d_1_input";
+    private static final String BINARY_OUTPUT_NAME = "dense_3/Softmax";
     private static final int BINARY_MAX_RESULTS = 1;
     private static final float BINARY_THRESHOLD = 0.8f;
 
@@ -60,7 +60,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
     // Assets
     // (Classifier)
-    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_classification.pb";
+    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_classification_own.pb";
     private static final String BINARY_LABEL_FILE = "file:///android_asset/binary_classification.txt";
 
     // (Detector)
@@ -238,7 +238,8 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
                         if (pressed) {
                             // Binary classification
-                            List<Classifier.Recognition> binaryResult = binaryClassifier.recognizeImage(resizeImageForClassifier(croppedBitmap));
+//                            List<Classifier.Recognition> binaryResult = binaryClassifier.recognizeImage(resizeImageForClassifier(croppedBitmap));
+                            List<Classifier.Recognition> binaryResult = binaryClassifier.recognizeImage(croppedBitmap);
 
                             // If banknote in frame
                             if (binaryResult.size() > 0 && binaryResult.get(0).getTitle().equals("banknote")) {
