@@ -238,7 +238,6 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
                         if (pressed) {
                             // Binary classification
-//                            List<Classifier.Recognition> binaryResult = binaryClassifier.recognizeImage(resizeImageForClassifier(croppedBitmap));
                             List<Classifier.Recognition> binaryResult = binaryClassifier.recognizeImage(croppedBitmap);
 
                             // If banknote in frame
@@ -380,6 +379,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 //        }
 //        lines.add("");
 
+        lines.add("Object: " + preResult);
         lines.add("Frame: " + previewWidth + "x" + previewHeight);
         lines.add("Crop: " + copy.getWidth() + "x" + copy.getHeight());
         lines.add("View: " + canvas.getWidth() + "x" + canvas.getHeight());
