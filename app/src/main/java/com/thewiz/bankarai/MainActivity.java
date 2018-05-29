@@ -379,6 +379,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 //        }
 //        lines.add("");
 
+        lines.add("Detected: "+preResult);
         lines.add("Frame: " + previewWidth + "x" + previewHeight);
         lines.add("Crop: " + copy.getWidth() + "x" + copy.getHeight());
         lines.add("View: " + canvas.getWidth() + "x" + canvas.getHeight());
