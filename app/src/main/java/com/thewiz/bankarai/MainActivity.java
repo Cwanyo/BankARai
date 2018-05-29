@@ -60,7 +60,7 @@ public class MainActivity extends CameraActivity implements OnImageAvailableList
 
     // Assets
     // (Classifier)
-    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_classification_own.pb";
+    private static final String BINARY_MODEL_FILE = "file:///android_asset/binary_classification.pb";
     private static final String BINARY_LABEL_FILE = "file:///android_asset/binary_classification.txt";
 
     // (Detector)
