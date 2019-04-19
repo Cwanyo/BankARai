@@ -12,6 +12,6 @@ Android application for visually impaired people which will be used to detect an
 
 # Contributors
 
-- Chatchawan yoojuie
+- Chatchawan Yoojuie
 - Pathompong Kunapermsiri
 - Natthakul Boonmee
